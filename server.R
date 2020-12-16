@@ -282,7 +282,7 @@ shinyServer(function(input, output, session) {
                ".csv")
       },
       content = function(file) {
-        write_delim(report_medicat(), file, delim = "|")
+        write_delim(report_medicat(), file, delim = "|", col_names = FALSE)
       })
     
     output$download_vdh_report <- downloadHandler(
