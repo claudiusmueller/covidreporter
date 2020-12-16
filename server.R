@@ -269,10 +269,10 @@ shinyServer(function(input, output, session) {
       filename = function () {
         paste0("Report_Medicat_",
                format(Sys.time(), "%m%d%y_%k%M%S"),
-               ".txt")
+               ".csv")
       },
       content = function(file) {
-        write_csv(report_medicat(), file)
+        write_delim(report_medicat(), file, delim = "|")
       })
     
     output$download_covid_db <- downloadHandler(
