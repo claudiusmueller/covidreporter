@@ -192,3 +192,62 @@ add_run_to_covid_db <- function(covid_db, run_results, run){
   qc <- list(qc = qc, qc_str = qc_str)
   return(list(covid_db = covid_db, qc = qc))
 }
+
+
+format_vdh_report <- function(vdh_template, report_with_subject_info){
+  report_renamed <- report_with_subject_info %>%
+    select(barcode, result_final, g_number, last_name, first_name, dob,
+           collection_date) %>%
+    rename(Specimen_ID = barcode,
+           Observation_Value = result_final,
+           PatientID = g_number,
+           Last_Name = last_name,
+           First_Name = first_name,
+           DOB = dob,
+           Observation_Date_Time = collection_date)
+  
+  report_time <- format(Sys.time(), "%Y%m%d%k%M%S")
+  
+  test_str <- "SARS corona virus 2 RNA [Presence] in saliva specimens by extraction-free nucleic acid amplification probe detection"
+  
+  report_vdh <- full_join(vdh_template, report_renamed) %>%
+    drop_na(PatientID) %>%
+    mutate(across(everything(), ~ifelse(is.na(.), "", .))) %>%
+    mutate(Sending_Facility_Name = "GMU Clinical Proteomics Laboratory",
+           Sending_Facility_CLIA = "49D2002076",
+           Message_Date_Time = report_time,
+           DOB = as_date(DOB),
+           DOB = format(DOB, "%Y%m%d"),
+           Specimen_Type_Description = "Saliva specimen",
+           Ordering_Facility_Name = "George Mason University",
+           Ordering_Facility_Address_1 = "4400 University Drive",
+           Ordering_Facility_City = "Fairfax",
+           Ordering_Facility_State = "VA",
+           Ordering_Facility_Zip = 22030,
+           Ordering_Facility_Phone = 7039939444,
+           Observation_Date_Time = as_datetime(Observation_Date_Time),
+           Observation_Date_Time = paste0(format(Observation_Date_Time, 
+                                                 "%Y%m%d%k%M%S"), "-0000"),
+           Result_Status = "F",
+           Specimen_Received_Date = Observation_Date_Time,
+           Order_Code = "COTEST PCR",
+           Order_Code_Text_Description = test_str,
+           Order_Code_Naming_System = "Local",
+           Result_Value_Type = "ST",
+           Result_Test_Code = "COTEST PCR",
+           Result_Test_Text_Description = test_str,
+           Result_Test_Naming_System = "Local",
+           Observation_Value_Result_Text = Observation_Value,
+           Observation_Value_Result_Naming_System = "Local",
+           Test_Result_Status = "F",
+           Performing_Lab_ID_Producer_Text = "GMU Clinical Proteomics Laboratory",
+           Performing_Lab_ID_Producer_Naming_System = "CLIA",
+           Date_Reported = paste0(report_time, "-0000"),
+           Performing_Lab_Street_Address_Line_1 = "10920 George Mason Circle",
+           Performing_Lab_City = "Manassas",
+           Performing_Lab_State = "VA",
+           Performing_Lab_Zip = 20110,
+           Specimen_Type_Identifier = 119342007,
+           Specimen_Type_Naming_System = "SCT")
+  return(report_vdh)
+}

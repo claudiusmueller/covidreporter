@@ -92,6 +92,11 @@ shinyUI(fluidPage(
             ),
             
             downloadButton(
+                "download_vdh_report",
+                "Download VDH Report"
+            ),
+            
+            downloadButton(
                 "download_covid_db", 
                 "Download Updated Covid DB"),
             

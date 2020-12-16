@@ -196,7 +196,17 @@ shinyServer(function(input, output, session) {
       report_with_subject_info <- add_subject_info_to_report(report_data()$final, 
                                                              subject_info())
       report_medicat <- format_medicat_report(report_with_subject_info)
-      
+    })
+    
+    report_vdh <- reactive({
+      validate(
+        need(!is.null(report_data()) & !is.null(subject_info()),
+             "Can't create vdh report!")
+      )
+      report_with_subject_info <- add_subject_info_to_report(report_data()$final, 
+                                                             subject_info())
+      vdh_template <- create_vdh_template()
+      report_vdh <- format_vdh_report(vdh_template, report_with_subject_info)
     })
     
     output$run_file_qc <- renderText(
@@ -273,6 +283,16 @@ shinyServer(function(input, output, session) {
       },
       content = function(file) {
         write_delim(report_medicat(), file, delim = "|")
+      })
+    
+    output$download_vdh_report <- downloadHandler(
+      filename = function () {
+        paste0("Report_VDH_",
+               format(Sys.time(), "%m%d%y_%k%M%S"),
+               ".txt")
+      },
+      content = function(file) {
+        write_delim(report_vdh(), file, delim = "|", col_names = FALSE)
       })
     
     output$download_covid_db <- downloadHandler(
