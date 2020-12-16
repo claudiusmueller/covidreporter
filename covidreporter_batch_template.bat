@@ -1,0 +1,3 @@
+@ECHO OFF
+ECHO Starting the Covid Report R-shiny script...
+"C:\Program Files\R\asdfasdfasdfsadfsadf\bin\Rscript.exe" -e "shiny::runApp('asdfasdfasdfsadfsadfappdir', launch.browser = TRUE)"
