@@ -13,6 +13,7 @@ library(readxl)
 library(janitor)
 library(lubridate)
 library(openxlsx)
+library(rmarkdown)
 source("io.R")
 source("data_functions.R")
 
@@ -47,9 +48,7 @@ shinyServer(function(input, output, session) {
         need(colnames(run_check)[1] == "Well", 
              "Corrupt data format in test run file!")
       )
-      run_raw <- load_run(file$datapath)
-      # validate(need(exists("run_raw") == TRUE, "Couldn't load Test Run Data!"))
-      # run_raw
+      run_data_raw <- load_run(file$datapath)
     })
     
     run_data_qc <- reactive({
@@ -119,6 +118,15 @@ shinyServer(function(input, output, session) {
       validate(need(sample_accession_qc()$qc != "FAIL", 
                     sample_accession_qc()$qc_str))
       sample_accession <- sample_accession_raw()
+    })
+    
+    indiv_report_source_qc <- reactive({
+      file <- input$indiv_report_source
+      indiv_report_source <- NULL
+      if (!is.null(file)){
+        indiv_report_source <- load_indiv_report_source(file$datapath)
+      }
+      qc <- check_indiv_report_source(indiv_report_source)
     })
     
     run_results <- reactive({
@@ -245,6 +253,11 @@ shinyServer(function(input, output, session) {
              )
     )
     
+    output$indiv_report_source_qc <- renderText(
+      paste0("Individual Reports Source File: ", indiv_report_source_qc()$qc, 
+             " (", indiv_report_source_qc()$qc_str, ")")
+    )
+    
     output$final_report <- renderTable({
         report_data()$final
     })
@@ -310,4 +323,43 @@ shinyServer(function(input, output, session) {
                          "runs" = updated_covid_db()$runs)
         write.xlsx(datasets, file)
       })
+    
+    output$download_indiv_reports <- downloadHandler(
+      filename = function() {
+        paste0("individual_reports", ".zip")
+      },
+      content = function(file) {
+        validate(need(indiv_report_source_qc()$qc != "FAIL", 
+                      indiv_report_source_qc()$qc_str))
+        detach("package:openxlsx", unload=TRUE)
+        library(zip)
+        source_file = input$indiv_report_source
+        indiv_report_source <- load_indiv_report_source(source_file$datapath)
+        n <- nrow(indiv_report_source)
+        reports <- c()
+        withProgress(message = 'Creating Invidivual Report:', value = 0, {
+          for (row in 1:nrow(indiv_report_source)){
+            first_name      <- indiv_report_source[[row, "first_name"]]
+            last_name       <- indiv_report_source[[row, "last_name"]]
+            test_result     <- indiv_report_source[[row, "test_result"]]
+            test_date       <- indiv_report_source[[row, "test_date"]]
+            collection_date <- indiv_report_source[[row, "collection_date"]]
+            
+            incProgress(1/n, detail = paste(first_name, last_name))
+            
+            path <- paste0(first_name, "_", last_name, "_", test_date, ".pdf")
+            render("individual_report.Rmd", 
+                   output_file = path,
+                   params=list(first_name = first_name,
+                               last_name = last_name,
+                               test_result = test_result,
+                               test_date = test_date,
+                               collection_date = collection_date))
+            
+            reports <- c(reports, path)
+          }})
+          zip(file, reports)
+      },
+      contentType = "application/zip"
+    )
 })

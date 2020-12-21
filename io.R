@@ -172,6 +172,32 @@ check_covid_db_integrity <- function(covid_db){
 }
 
 
+
+load_indiv_report_source <- function(filename){
+  indiv_report_source <- read_excel(filename) %>%
+    clean_names() %>%
+    select(first_name, last_name, collection_date, test_date, test_result) %>%
+    mutate(collection_date = as_date(collection_date),
+           test_date = as_date(test_date))
+  return(indiv_report_source)
+}
+
+
+check_indiv_report_source <- function(indiv_report_source){
+  if (is.null(indiv_report_source)){
+    qc = "FAIL"
+    qc_str = "No report source file loaded!"
+  } else if (nrow(indiv_report_source) < 1) {
+    qc = "FAIL"
+    qc_str = "Source file empty!"
+  } else {
+    qc = "PASS"
+    qc_str = "No errors found"
+  }
+  return(list(qc = qc, qc_str = qc_str))
+}
+
+
 create_vdh_template <- function(){
   vdh_template <- tibble(
     Sending_Facility_Name = c(NA),

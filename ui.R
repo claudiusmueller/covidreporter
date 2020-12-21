@@ -107,7 +107,31 @@ shinyUI(fluidPage(
             textOutput("covid_db_qc"),
             textOutput("subject_info_qc"),
             textOutput("sample_accession_qc"),
-            textOutput("updated_covid_db_qc")
+            textOutput("updated_covid_db_qc"),
+            
+            HTML("<br>"),
+            
+            hr(style = "border-top: 1px solid #000000;"),
+            
+            HTML("<br>"),
+            
+            fileInput(
+                "indiv_report_source",
+                "Source File for Individual Reports",
+                multiple = FALSE,
+                accept = c(".xlsx", ".xls"),
+                width = NULL,
+                buttonLabel = "Browse...",
+                placeholder = "No file selected"
+            ),
+            
+            textOutput("indiv_report_source_qc"),
+            HTML("<br>"),
+            
+            downloadButton(
+                "download_indiv_reports",
+                "Create and Download Individual Reports"
+            )
 
         ),
 
