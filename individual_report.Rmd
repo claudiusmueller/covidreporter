@@ -1,0 +1,148 @@
+---
+output: 
+  pdf_document:
+    latex_engine: xelatex
+mainfont: Arial
+params:
+  barcode: NA
+  first_name: NA
+  last_name: NA
+  test_result: NA
+  test_date: NA
+  collection_date: NA
+geometry: "left=2cm, right=2cm, top=1cm"
+header-includes:
+  - \usepackage{multicol}
+  - \usepackage{float}
+  - \usepackage{lastpage}
+  - \usepackage{fancyhdr}
+  - \pagestyle{fancy}
+  - \fancyfoot[C]{\thepage\ of \pageref{LastPage}}
+  - \usepackage{xcolor}
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{array}
+  - \usepackage{multirow}
+  - \usepackage{wrapfig}
+  - \usepackage{float}
+  - \usepackage{colortbl}
+  - \usepackage{pdflscape}
+  - \usepackage{tabu}
+  - \usepackage{threeparttable}
+  - \usepackage[normalem]{ulem}
+  - \usepackage{fontspec}
+  - \setmainfont{Arial}
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE, eval=TRUE}
+library(knitr)
+opts_chunk$set(echo = FALSE)
+opts_chunk$set(warning = FALSE)
+opts_chunk$set(message = FALSE)
+opts_chunk$set(comment = "")
+opts_chunk$set(results = "asis")
+knitr::opts_chunk$set(fig.path = "figure/", dev='pdf')
+```
+
+```{r}
+neg_text <- "The SARS-CoV-2 N1 gene was not detected in your sample above the limit of detection. 
+A negative result does not exclude the possibility of COVID-19. The possibility of a false negative should be considered in the context of a patient's recent exposures and the presence of clinical signs and symptoms consistent with COVID-19. Risks to a patient of a false negative include: delayed or lack of supportive treatment, lack of monitoring of infected individuals and their household or other close contacts for symptoms resulting in increased risk of COVID-19 spread within the community, or other unintended adverse events."
+
+pos_text <- "The SARS-CoV-2 N1 gene was detected in your sample above the limit of detection. The individual is infected with the virus and presumed to be contagious. Laboratory test results should always be considered in the context of clinical observations and epidemiological data in making a final diagnosis and patient management decision. In the event of a false positive result risks to patients could include the following: a recommendation for isolation of the patient, monitoring of household or other close contacts for symptoms, patient isolation that might limit contact with family or friends and may increase contact with other potential COVID-19 patients, limits in the ability to work, the delayed diagnosis and treatment for the true infection causing those symptoms, unnecessary prescription of a treatment or therapy, or other unintended adverse effects."
+
+inv_text <- "The test results were inconclusive based on internal quality control measures, or your specimen was not adequate for testing."
+
+disclaimer_text <- "No approval or emergency use authorization by the Food and Drug Administration or other federal agency for any laboratory test conducted in this report was granted or implied."
+
+method_text <- "This Laboratory Developed Test detects the N1 gene of SARS-CoV-2 in saliva specimens by extraction-free nucleic acid amplification probe detection, performed on a ThermoFisher QuantStudio 7 Pro RT-PCR instrument. The control gene in this assay is the 
+human RNase P gene."
+```
+
+```{r text_selection}
+if (test_result == "detected"){
+  interpretation_text <- pos_text
+  test_result_text <- "**detected**"
+} else if (test_result == "not detected"){
+  interpretation_text <- neg_text
+  test_result_text <- "not detected"
+} else if (test_result == "Specimen inadequate"){
+  interpretation_text <- inv_text  
+  test_result_text <- "Specimen inadequate"
+}
+```
+
+\begin{figure}
+	\includegraphics{individual_report_assets/header.png}
+\end{figure}
+
+\begin{figure}
+	\includegraphics{individual_report_assets/patient_info_header.png}
+\end{figure}
+\vspace{-5mm}
+
+
+\begin{multicols}{2}
+  \textbf{Patient ID:} `r as.character(params$barcode)`
+  \newline
+	\textbf{Patient Name:} `r paste(params$first_name, params$last_name)`
+	\columnbreak
+	\newline
+	\textbf{Specimen Collection Date:} `r format(params$collection_date, format="%B %d, %Y")`
+	\newline
+	\textbf{Specimen Test Date:} `r format(params$test_date, format="%B %d, %Y")`
+\end{multicols}
+
+\begin{figure}
+	\includegraphics{individual_report_assets/test_result_header.png}
+\end{figure}
+\vspace{-2mm}
+
+\textbf{SARS-CoV2:} \Large `r test_result_text`
+\vspace{3mm}
+
+\normalsize
+
+\begin{figure}[H]
+	\includegraphics{individual_report_assets/interpretation_header.png}
+\end{figure}
+\vspace{-5mm}
+
+`r interpretation_text`
+
+\vspace{3mm}
+
+\begin{figure}[H]
+	\includegraphics{individual_report_assets/methodology_header.png}
+\end{figure}
+\vspace{-5mm}
+
+`r method_text`
+
+\vspace{3mm}
+
+\begin{figure}[H]
+	\includegraphics{individual_report_assets/signature_header.png}
+\end{figure}
+\vspace{-5mm}
+
+\begin{minipage}[b]{.7\linewidth}
+  \begin{figure}[H]
+	  \includegraphics{individual_report_assets/lance_scanned_signature.jpg}
+  \end{figure}
+\end{minipage}
+\begin{minipage}[c]{.3\linewidth}
+  `r format(Sys.time(), "%m-%d-%Y")`
+\end{minipage}
+\vspace{-7mm}
+
+\begin{figure}[H]
+	\includegraphics{individual_report_assets/signature_line.png}
+\end{figure}
+\vspace{5mm}
+
+\begin{figure}[H]
+	\includegraphics{individual_report_assets/disclaimer_header.png}
+\end{figure}
+\vspace{-5mm}
+
+`r disclaimer_text`

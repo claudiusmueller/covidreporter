@@ -339,6 +339,7 @@ shinyServer(function(input, output, session) {
         reports <- c()
         withProgress(message = 'Creating Invidivual Report:', value = 0, {
           for (row in 1:nrow(indiv_report_source)){
+            barcode         <- indiv_report_source[[row, "barcode"]]
             first_name      <- indiv_report_source[[row, "first_name"]]
             last_name       <- indiv_report_source[[row, "last_name"]]
             test_result     <- indiv_report_source[[row, "test_result"]]
@@ -350,7 +351,8 @@ shinyServer(function(input, output, session) {
             path <- paste0(first_name, "_", last_name, "_", test_date, ".pdf")
             render("individual_report.Rmd", 
                    output_file = path,
-                   params=list(first_name = first_name,
+                   params=list(barcode = barcode,
+                               first_name = first_name,
                                last_name = last_name,
                                test_result = test_result,
                                test_date = test_date,
