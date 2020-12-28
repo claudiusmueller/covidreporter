@@ -85,6 +85,8 @@ if (test_result == "detected"){
   \textbf{Patient ID:} `r as.character(params$barcode)`
   \newline
 	\textbf{Patient Name:} `r paste(params$first_name, params$last_name)`
+	\newline
+	\textbf{Ordering Provider:} Angela Chezem, MD
 	\columnbreak
 	\newline
 	\textbf{Specimen Collection Date:} `r format(params$collection_date, format="%B %d, %Y")`
