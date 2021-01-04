@@ -2,7 +2,6 @@ load_run <- function(filename){
   run_head <- read_csv(filename, col_names = c("line", "backup"),
                           col_types = cols(line = col_character(), 
                                            backup = col_character()))
-  run <- read_csv(filename, skip = 24, col_types = "iccccccccdccddddcdcii")
   
   date_pattern <- "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2} \\w{2} \\w{3}"
   id_pattern <- "(?<=([Rr][Uu][Nn]))\\d+"
@@ -11,14 +10,24 @@ load_run <- function(filename){
     mutate(date = str_extract(line, date_pattern),
            id = str_extract(line, id_pattern),
            date_backup = str_extract(backup, date_pattern),
-           id_backup = str_extract(backup, id_pattern))
+           id_backup = str_extract(backup, id_pattern),
+           correct_date_pos = str_detect(line, "Run Start Date"),
+           correct_id_pos = str_detect(line, "File Name"),
+           correct_well_pos = str_detect(line, "^Well"))
   
-  run_id <- run_head$id[1]
-  run_date <- run_head$date[11]
+  id_pos <- which(run_head$correct_id_pos == TRUE)
+  date_pos <- which(run_head$correct_date_pos == TRUE)
+  well_pos <- which(run_head$correct_well_pos == TRUE)
+  
+  run_id <- run_head$id[id_pos]
+  run_date <- run_head$date[date_pos]
   if (is.na(run_id)){
-    run_id <- run_head$id_backup[1]
-    run_date <- run_head$date_backup[11]
+    run_id <- run_head$id_backup[id_pos]
+    run_date <- run_head$date_backup[date_pos]
   }
+  
+  run <- read_csv(filename, skip = well_pos - 1, 
+                  col_types = "iccccccccdccddddcdcii")
   
   run <- run %>%
     clean_names() %>%
