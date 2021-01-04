@@ -29,6 +29,9 @@ shinyUI(fluidPage(
                 placeholder = "No file selected"
             ),
             
+            textOutput("run_file_qc"),
+            HTML("<br>"),
+            
             fileInput(
                 "sample_manifest",
                 "New Sample Manifest",
@@ -38,6 +41,9 @@ shinyUI(fluidPage(
                 buttonLabel = "Browse...",
                 placeholder = "No file selected"
             ),
+            
+            textOutput("sample_manifest_qc"),
+            HTML("<br>"),
             
             fileInput(
                 "subject_info",
@@ -49,6 +55,9 @@ shinyUI(fluidPage(
                 placeholder = "No file selected"
             ),
             
+            textOutput("subject_info_qc"),
+            HTML("<br>"),
+            
             fileInput(
                 "covid_db",
                 "Covid Database",
@@ -59,15 +68,21 @@ shinyUI(fluidPage(
                 placeholder = "No file selected"
             ),
             
-            fileInput(
-                "sample_accession",
-                "New Sample Accession Data (optional)",
-                multiple = FALSE,
-                accept = c(".xlsx", ".xls"),
-                width = NULL,
-                buttonLabel = "Browse...",
-                placeholder = "No file selected"
-            ),
+            textOutput("covid_db_qc"),
+            HTML("<br>"),
+            
+            # fileInput(
+            #     "sample_accession",
+            #     "New Sample Accession Data (optional)",
+            #     multiple = FALSE,
+            #     accept = c(".xlsx", ".xls"),
+            #     width = NULL,
+            #     buttonLabel = "Browse...",
+            #     placeholder = "No file selected"
+            # ),
+            # 
+            # textOutput("sample_accession_qc"),
+            # HTML("<br>"),
             
             actionButton(
                 "run_script",
@@ -75,6 +90,9 @@ shinyUI(fluidPage(
                 icon = NULL,
                 width = NULL
             ),
+            
+            HTML("<br><br>"),
+            textOutput("updated_covid_db_qc"),
             
             HTML("<br><br><br>"),
             
@@ -99,21 +117,12 @@ shinyUI(fluidPage(
             downloadButton(
                 "download_covid_db", 
                 "Download Updated Covid DB"),
-            
-            HTML("<br><br><br>"),
-            
-            textOutput("run_file_qc"),
-            textOutput("sample_manifest_qc"),
-            textOutput("covid_db_qc"),
-            textOutput("subject_info_qc"),
-            textOutput("sample_accession_qc"),
-            textOutput("updated_covid_db_qc"),
-            
+
             HTML("<br>"),
             
             hr(style = "border-top: 1px solid #000000;"),
             
-            HTML("<br>"),
+            HTML("<br><br><br>"),
             
             fileInput(
                 "indiv_report_source",

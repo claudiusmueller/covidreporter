@@ -44,15 +44,20 @@ load_run <- function(filename){
 }
 
 
-check_run_data <- function(run){
-  qc = "PASS"
-  qc_str = "No errors found"
-  if(is.null(run)){
+check_run_data <- function(run_data){
+  if (is.null(run_data)){
+    qc = "FAIL"
+    qc_str = "No test run data loaded!"
+  } else if(is.na(run_data)){
     qc = "FAIL"
     qc_str = "Could not load test run file!"
-  } else if (typeof(run$run_id[[1]]) != "integer" | is.na(run$run_id[[1]])) {
+  } else if (typeof(run_data$run_id[[1]]) != "integer" | 
+             is.na(run_data$run_id[[1]])) {
     qc = "FAIL"
     qc_str = "No correct run ID identified!"
+  } else {
+    qc = "PASS"
+    qc_str = "No errors found"
   }
   return(list(qc = qc, qc_str = qc_str))
 }
@@ -68,14 +73,24 @@ load_sample_manifest <- function(filename){
 
 
 check_sample_manifest <- function(sample_manifest, run){
-  qc = "PASS"
-  qc_str = "No errors found"
-  if (nrow(sample_manifest) == 0){
+  if (is.null(sample_manifest)){
     qc = "FAIL"
-    qc_str = "Sample Manifest is empty!"
+    qc_str = "No sample manifest loaded!"
+  } else if (is.na(sample_manifest)){
+    qc = "FAIL"
+    qc_str = "Failed to load sample manifest file!"
+  } else if (is.na(run)){
+    qc = "FAIL"
+    qc_str = "No run data loaded (needed for sample manifest qc)"
+  } else if (nrow(sample_manifest) == 0){
+    qc = "FAIL"
+    qc_str = "Sample manifest is empty!"
   } else if(!any(run$barcode %in% sample_manifest$barcode)){
     qc = "FAIL"
-    qc_str = "No Test Run barcodes found in Sample Manifest!"
+    qc_str = "No test run barcodes found in sample manifest!"
+  } else {
+    qc = "PASS"
+    qc_str = "No errors found"
   }
   return(list(qc = qc, qc_str = qc_str))
 }
@@ -124,19 +139,31 @@ load_subject_information <- function(filename){
 
 
 check_subject_info <- function(subject_info, run){
-  qc = "PASS"
-  qc_str = "No errors found"
-  run <- run %>%
-    mutate(barcode_check = ifelse(barcode %in% subject_info$barcode,
-                                  TRUE, FALSE))
-  if (!any(run$barcode_check)) {
+  if (is.null(subject_info)){
     qc = "FAIL"
-    qc_str = "No test run barcode matches subject information file!"
-  } else if (!all(run$barcode_check)) {
-    qc = "PASS"
-    qc_str = paste("Samples with no subject information:",
-                   paste(run$barcode[run$barcode_check == FALSE], 
-                         collapse = ", "))
+    qc_str = "No subject information loaded!"
+  } else if (is.na(subject_info)){
+    qc = "FAIL"
+    qc_str = "Failed to load subject information file!"
+  } else if (is.na(run)){
+    qc = "FAIL"
+    qc_str = "No run data loaded (needed for sample manifest qc)"
+  } else {
+    run <- run %>%
+      mutate(barcode_check = ifelse(barcode %in% subject_info$barcode,
+                                    TRUE, FALSE))
+    if (!any(run$barcode_check)) {
+      qc = "FAIL"
+      qc_str = "No test run barcode matches subject information file!"
+    } else if (!all(run$barcode_check)) {
+      qc = "PASS"
+      qc_str = paste("Samples with no subject information:",
+                     paste(run$barcode[run$barcode_check == FALSE], 
+                           collapse = ", "))
+    } else {
+      qc = "PASS"
+      qc_str = "No errors found"
+    }
   }
   return(list(qc = qc, qc_str = qc_str))
 }
@@ -155,23 +182,31 @@ load_covid_db <- function(filename){
 
 
 check_covid_db_integrity <- function(covid_db){
-  runs <- covid_db$runs
-  results <- covid_db$results
-  qc = "PASS"
-  qc_str = "No database errors found"
-  if (nrow(runs) == 0){
+  if (is.null(covid_db)){
     qc = "FAIL"
-    qc_str = "Covid DB is empty!"
-  } else if (unique(runs$run_id) != runs$run_id){
+    qc_str = "No covid database loaded!"
+  } else if (is.na(covid_db)){
     qc = "FAIL"
-    qc_str = "Duplicate run ID's found in 'runs' table!"
-  } else if (unique(results$run_id) != runs$run_id){
-    qc = "FAIL"
-    qc_str = "Run ID mismatch between 'results' and 'runs' table!"
+    qc_str = "Could not load covid database file!"
+  } else {
+    runs <- covid_db$runs
+    results <- covid_db$results
+    if (nrow(runs) == 0){
+      qc = "FAIL"
+      qc_str = "Covid DB is empty!"
+    } else if (unique(runs$run_id) != runs$run_id){
+      qc = "FAIL"
+      qc_str = "Duplicate run ID's found in 'runs' table!"
+    } else if (unique(results$run_id) != runs$run_id){
+      qc = "FAIL"
+      qc_str = "Run ID mismatch between 'results' and 'runs' table!"
+    } else {
+      qc = "PASS"
+      qc_str = "No database errors found"
+    }
   }
   return(list(qc = qc, qc_str = qc_str))
 }
-
 
 
 load_indiv_report_source <- function(filename){
@@ -189,6 +224,9 @@ check_indiv_report_source <- function(indiv_report_source){
   if (is.null(indiv_report_source)){
     qc = "FAIL"
     qc_str = "No report source file loaded!"
+  } else if (is.na(indiv_report_source)){
+    qc = "FAIL"
+    qc_str = "Failed to load file!"
   } else if (nrow(indiv_report_source) < 1) {
     qc = "FAIL"
     qc_str = "Source file empty!"

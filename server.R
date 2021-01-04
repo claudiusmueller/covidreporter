@@ -37,99 +37,135 @@ scheduled_str     <<- "scheduled"
 # string if report failed
 fail_str          <<- "report generation fail"
 
-# Define server logic required to draw a histogram
-shinyServer(function(input, output, session) {
 
-    run_data_raw <- eventReactive(input$run_script, {
-      file <- input$run
-      run_check <- read_csv(file$datapath, skip = 24)
-      t <- run_check
-      validate(
-        need(colnames(run_check)[1] == "Well", 
-             "Corrupt data format in test run file!")
-      )
-      run_data_raw <- load_run(file$datapath)
-    })
+shinyServer(function(input, output, session) {
     
     run_data_qc <- reactive({
-      qc <- check_run_data(run_data_raw())
+      file <- input$run
+      run_data <- NULL
+      if (!is.null(file)){
+        run_data <- tryCatch({
+          load_run(file$datapath)
+        },
+        error = function(cond){
+          return(NA)
+        })
+      }
+      qc <- check_run_data(run_data)
     })
     
     run_data <- reactive({
       validate(need(run_data_qc()$qc != "FAIL", run_data_qc()$qc_str))
-      run_data <- run_data_raw()
-    })
-    
-    sample_manifest_raw <- eventReactive(input$run_script, {
-      file <- input$sample_manifest
-      sample_manifest_raw <- load_sample_manifest(file$datapath)
+      file <- input$run
+      run_data <- load_run(file$datapath)
     })
     
     sample_manifest_qc <- reactive({
-      qc <- check_sample_manifest(sample_manifest_raw(), run_data())
+      file <- input$sample_manifest
+      sample_manifest <- NULL
+      if (!is.null(file)){
+        sample_manifest <- tryCatch({
+          load_sample_manifest(file$datapath)
+        },
+        error = function(cond){
+          return(NA)
+        })
+        run_data <- tryCatch({
+          run_data()
+        },
+        error = function(cond){
+          return(NA)
+        })
+      }
+      qc <- check_sample_manifest(sample_manifest, run_data)
     })
     
     sample_manifest <- reactive({
       validate(need(sample_manifest_qc()$qc != "FAIL", 
                     sample_manifest_qc()$qc_str))
-      sample_manifest <- sample_manifest_raw()
-    })
-    
-    subject_info_raw <- eventReactive(input$run_script, {
-      file <- input$subject_info
-      subject_info <- load_subject_information(file$datapath)
+      file <- input$sample_manifest
+      sample_manifest <- load_sample_manifest(file$datapath)
     })
     
     subject_info_qc <- reactive({
-      qc <- check_subject_info(subject_info_raw(), run_data())
+      file <- input$subject_info
+      subject_info <- NULL
+      if (!is.null(file)){
+        subject_info <- tryCatch({
+          load_subject_information(file$datapath)
+        },
+        error = function(cond){
+          return(NA)
+        })
+        run_data <- tryCatch({
+          run_data()
+        },
+        error = function(cond){
+          return(NA)
+        })
+      }
+      qc <- check_subject_info(subject_info, run_data)
     })
     
     subject_info <- reactive({
       validate(need(subject_info_qc()$qc != "FAIL", subject_info_qc()$qc_str))
-      subject_info <- subject_info_raw()
-    })
-    
-    covid_db_raw <- eventReactive(input$run_script, {  
-      file <- input$covid_db
-      covid_db_raw <- load_covid_db(file$datapath)
+      file <- input$subject_info
+      subject_info <- load_subject_information(file$datapath)
     })
     
     covid_db_qc <- reactive({
-      qc <- check_covid_db_integrity(covid_db_raw())
+      file <- input$covid_db
+      covid_db <- NULL
+      if (!is.null(file)){
+        covid_db <- tryCatch({
+          load_covid_db(file$datapath)
+        },
+        error = function(cond){
+          return(NA)
+        })
+      }
+      qc <- check_covid_db_integrity(covid_db)
     })
     
     covid_db <- reactive({
       validate(need(covid_db_qc()$qc != "FAIL", covid_db_qc()$qc_str))
-      covid_db <- covid_db_raw()
+      file <- input$covid_db
+      covid_db <- load_covid_db(file$datapath)
     })
     
-    sample_accession_raw <- eventReactive(input$run_script, {
-      file <- input$sample_accession
-        if (!is.null(file)){
-        sample_accession_raw <- load_sample_manifest(file$datapath)
-      }
-    })
-    
-    sample_accession_qc <- reactive({
-      qc <- check_sample_accession(sample_accession_raw())
-    })
-    
-    sample_accession <- reactive({
-      validate(need(sample_accession_qc()$qc != "FAIL", 
-                    sample_accession_qc()$qc_str))
-      sample_accession <- sample_accession_raw()
-    })
+    # sample_accession_raw <- eventReactive(input$run_script, {
+    #   file <- input$sample_accession
+    #     if (!is.null(file)){
+    #     sample_accession_raw <- load_sample_manifest(file$datapath)
+    #   }
+    # })
+    # 
+    # sample_accession_qc <- reactive({
+    #   qc <- check_sample_accession(sample_accession_raw())
+    # })
+    # 
+    # sample_accession <- reactive({
+    #   validate(need(sample_accession_qc()$qc != "FAIL", 
+    #                 sample_accession_qc()$qc_str))
+    #   sample_accession <- sample_accession_raw()
+    # })
     
     indiv_report_source_qc <- reactive({
       file <- input$indiv_report_source
       indiv_report_source <- NULL
       if (!is.null(file)){
-        indiv_report_source <- load_indiv_report_source(file$datapath)
+        indiv_report_source <- tryCatch({
+          load_indiv_report_source(file$datapath)
+        },
+        error = function(cond){
+          return(NA)
+        })
       }
       qc <- check_indiv_report_source(indiv_report_source)
     })
     
-    run_results <- reactive({
+    # run_results <- reactive({
+    run_results <- eventReactive(input$run_script, {
       validate(
         need(!is.null(run_data()) & !is.null(sample_manifest()),
                       "Can't create results - problem loading run data or sample manifest!")
@@ -148,10 +184,10 @@ shinyServer(function(input, output, session) {
       matched_results <- match_run_results_with_previous(run_results(), 
                                                          covid_db()$full)
       matched_results <- set_result_status(matched_results)
-      if (!is.null(sample_accession())){
-        matched_results <- add_failed_accession_qc_samples_to_results(matched_results,
-                                                                      sample_accession())
-      }
+      # if (!is.null(sample_accession())){
+      #   matched_results <- add_failed_accession_qc_samples_to_results(matched_results,
+      #                                                                 sample_accession())
+      # }
       matched_results
     })
 
@@ -226,27 +262,27 @@ shinyServer(function(input, output, session) {
     })
     
     output$run_file_qc <- renderText(
-      paste0("Run file loaded: ", run_data_qc()$qc, " (", 
+      paste0("Test Run: ", run_data_qc()$qc, " (", 
              run_data_qc()$qc_str, ")")
     )
     
     output$sample_manifest_qc <- renderText(
-      paste0("Sample Manifest loaded: ", sample_manifest_qc()$qc, " (",
+      paste0("Sample Manifest: ", sample_manifest_qc()$qc, " (",
              sample_manifest_qc()$qc_str, ")")
     )
     
     output$covid_db_qc <- renderText(
-      paste0("Covid DB integrity: ", covid_db_qc()$qc, " (",
+      paste0("Covid DB: ", covid_db_qc()$qc, " (",
              covid_db_qc()$qc_str, ")")
     )
     
     output$subject_info_qc <- renderText(
-      paste0("Subject information loaded: ", subject_info_qc()$qc, " (",
+      paste0("Subject Information: ", subject_info_qc()$qc, " (",
              subject_info_qc()$qc_str, ")")
     )
     
     output$sample_accession_qc <- renderText(
-      paste0("Sample accession information: ", sample_accession_qc()$qc, " (",
+      paste0("Sample Accession Information: ", sample_accession_qc()$qc, " (",
              sample_accession_qc()$qc_str, ")")
     )
     
