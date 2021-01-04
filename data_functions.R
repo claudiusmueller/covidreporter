@@ -1,10 +1,3 @@
-format_run <- function(run){
-  # run <- run %>%
-  #   select(-test_date)
-  return(run)
-}
-
-
 compute_run_results <- function(run){
   results <- run %>%
     mutate(result = case_when((rnasep >= cutpoint_rnasep | 
@@ -32,11 +25,13 @@ match_run_results_with_previous <- function(run_results, previous_results){
     mutate(result_2 = ifelse("result_2" %in% names(.), result_2, NA),
            run_id_2 = ifelse("run_id_2" %in% names(.), run_id_2, NA),
            test_date_2 = ifelse("test_date_2" %in% names(.), test_date_2, NA),
+           test_date_2 = as_datetime(test_date_2),
            rnasep_2 = ifelse("rnasep_2" %in% names(.), rnasep_2, NA),
            n1gene_2 = ifelse("n1gene_2" %in% names(.), n1gene_2, NA),
            result_3 = ifelse("result_3" %in% names(.), result_3, NA),
            run_id_3 = ifelse("run_id_3" %in% names(.), run_id_3, NA),
            test_date_3 = ifelse("test_date_3" %in% names(.), test_date_3, NA),
+           test_date_3 = as_datetime(test_date_3),
            rnasep_3 = ifelse("rnasep_3" %in% names(.), rnasep_3, NA),
            n1gene_3 = ifelse("n1gene_3" %in% names(.), n1gene_3, NA))
   return(matched_results)

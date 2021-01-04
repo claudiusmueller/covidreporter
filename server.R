@@ -164,14 +164,12 @@ shinyServer(function(input, output, session) {
       qc <- check_indiv_report_source(indiv_report_source)
     })
     
-    # run_results <- reactive({
     run_results <- eventReactive(input$run_script, {
       validate(
         need(!is.null(run_data()) & !is.null(sample_manifest()),
                       "Can't create results - problem loading run data or sample manifest!")
       )
-      run_formatted <- format_run(run_data())
-      run_results <- compute_run_results(run_formatted)
+      run_results <- compute_run_results(run_data())
       run_results <- add_failed_manifest_qc_samples_to_results(run_results,
                                                                sample_manifest())
     })
