@@ -386,6 +386,7 @@ shinyServer(function(input, output, session) {
             barcode         <- indiv_report_source[[row, "barcode"]]
             first_name      <- indiv_report_source[[row, "first_name"]]
             last_name       <- indiv_report_source[[row, "last_name"]]
+            dob             <- indiv_report_source[[row, "dob"]]
             test_result     <- indiv_report_source[[row, "test_result"]]
             test_date       <- indiv_report_source[[row, "test_date"]]
             collection_date <- indiv_report_source[[row, "collection_date"]]
@@ -398,6 +399,7 @@ shinyServer(function(input, output, session) {
                    params=list(barcode = barcode,
                                first_name = first_name,
                                last_name = last_name,
+                               dob = dob,
                                test_result = test_result,
                                test_date = test_date,
                                collection_date = collection_date))

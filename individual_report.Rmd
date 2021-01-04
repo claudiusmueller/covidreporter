@@ -7,6 +7,7 @@ params:
   barcode: NA
   first_name: NA
   last_name: NA
+  dob: NA
   test_result: NA
   test_date: NA
   collection_date: NA
@@ -86,12 +87,14 @@ if (test_result == "detected"){
   \newline
 	\textbf{Patient Name:} `r paste(params$first_name, params$last_name)`
 	\newline
-	\textbf{Ordering Provider:} Angela Chezem, MD
+	\textbf{Date of Birth:} `r format(params$dob, format="%B %d, %Y")`
 	\columnbreak
 	\newline
 	\textbf{Specimen Collection Date:} `r format(params$collection_date, format="%B %d, %Y")`
 	\newline
 	\textbf{Specimen Test Date:} `r format(params$test_date, format="%B %d, %Y")`
+	\newline
+	\textbf{Ordering Provider:} Angela Chezem, MD
 \end{multicols}
 
 \begin{figure}

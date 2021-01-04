@@ -221,9 +221,10 @@ check_covid_db_integrity <- function(covid_db){
 load_indiv_report_source <- function(filename){
   indiv_report_source <- read_excel(filename) %>%
     clean_names() %>%
-    select(barcode, first_name, last_name, collection_date, test_date, 
+    select(barcode, first_name, last_name, dob, collection_date, test_date, 
            test_result) %>%
-    mutate(collection_date = as_date(collection_date),
+    mutate(dob = as_date(dob),
+           collection_date = as_date(collection_date),
            test_date = as_date(test_date))
   return(indiv_report_source)
 }
