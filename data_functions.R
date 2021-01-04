@@ -1,6 +1,6 @@
 format_run <- function(run){
-  run <- run %>%
-    select(-test_date)
+  # run <- run %>%
+  #   select(-test_date)
   return(run)
 }
 
@@ -28,13 +28,15 @@ match_run_results_with_previous <- function(run_results, previous_results){
     group_by(barcode) %>%
     mutate(occurance = 1:n()) %>%
     pivot_wider(names_from = occurance,
-                values_from = c(result, run_id, rnasep, n1gene)) %>%
+                values_from = c(result, run_id, test_date, rnasep, n1gene)) %>%
     mutate(result_2 = ifelse("result_2" %in% names(.), result_2, NA),
            run_id_2 = ifelse("run_id_2" %in% names(.), run_id_2, NA),
+           test_date_2 = ifelse("test_date_2" %in% names(.), test_date_2, NA),
            rnasep_2 = ifelse("rnasep_2" %in% names(.), rnasep_2, NA),
            n1gene_2 = ifelse("n1gene_2" %in% names(.), n1gene_2, NA),
            result_3 = ifelse("result_3" %in% names(.), result_3, NA),
            run_id_3 = ifelse("run_id_3" %in% names(.), run_id_3, NA),
+           test_date_3 = ifelse("test_date_3" %in% names(.), test_date_3, NA),
            rnasep_3 = ifelse("rnasep_3" %in% names(.), rnasep_3, NA),
            n1gene_3 = ifelse("n1gene_3" %in% names(.), n1gene_3, NA))
   return(matched_results)
@@ -124,10 +126,9 @@ select_results_for_report <- function(matched_results, subject_info){
   matched_results <- matched_results %>%
     filter(barcode %in% subject_info$barcode) %>%
     select(barcode, 
-           run_id_1, rnasep_1, n1gene_1, result_1,
-           run_id_2, rnasep_2, n1gene_2, result_2,
-           run_id_3, rnasep_3, n1gene_3, result_3,
-           # run_id_4, rnasep_4, n1gene_4, result_4,
+           run_id_1, test_date_1, rnasep_1, n1gene_1, result_1,
+           run_id_2, test_date_2, rnasep_2, n1gene_2, result_2,
+           run_id_3, test_date_3, rnasep_3, n1gene_3, result_3,
            result_final, test_status)
   report_final <- matched_results %>%
     filter(test_status == final_str) %>%
@@ -136,6 +137,22 @@ select_results_for_report <- function(matched_results, subject_info){
     filter(test_status == preliminary_str) %>%
     select(-test_status)
   return(list(final = report_final, prelim = report_prelim))
+}
+
+
+format_report_for_shiny_table <- function(report_data){
+  report_final <- report_data$final
+  report_final <- report_final %>%
+    mutate(test_date_1 = format(as_date(test_date_1), "%Y-%m-%d"),
+           test_date_2 = format(as_date(test_date_2), "%Y-%m-%d"),
+           test_date_3 = format(as_date(test_date_3), "%Y-%m-%d"))
+  report_prelim <- report_data$prelim
+  report_prelim <- report_prelim %>%
+    mutate(test_date_1 = format(as_date(test_date_1), "%Y-%m-%d"),
+           test_date_2 = format(as_date(test_date_2), "%Y-%m-%d"),
+           test_date_3 = format(as_date(test_date_3), "%Y-%m-%d"))
+  return(list(final = report_final, prelim = report_prelim))
+    
 }
 
 
@@ -149,9 +166,16 @@ add_subject_info_to_report <- function(report_final, subject_info){
 
 
 format_condensed_report <- function(report_with_subject_info){
+  mymax <- function(x, y, z){
+    max(x, y, z, na.rm = TRUE)
+  }
   report_condensed <- report_with_subject_info %>%
+    mutate(test_date_final = pmap_dbl(list(test_date_1, test_date_2, 
+                                           test_date_3), mymax),
+           test_date_final = as_datetime(test_date_final),
+           test_date_final = as_date(test_date_final)) %>%
     select(barcode, collection_date, g_number, net_id,
-           first_name, last_name, dob, result_final) %>%
+           first_name, last_name, dob, test_date_final, result_final) %>%
     rename(Barcode = barcode, 
            `Collection Date` = collection_date,
            `G#` = g_number,
@@ -159,6 +183,7 @@ format_condensed_report <- function(report_with_subject_info){
            `Last Name` = last_name,
            `First Name` = first_name,
            DOB = dob,
+           `Test Date` = test_date_final,
            `Test Result` = result_final)
   return(report_condensed)
 }

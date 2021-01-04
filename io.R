@@ -149,7 +149,8 @@ load_covid_db <- function(filename){
                                       "text"))
   runs <- read_excel(filename, sheet = "runs",
                      col_types = c("numeric", "date"))
-  return(list(results = results, runs = runs))
+  full <- left_join(results, runs, by = "run_id")
+  return(list(results = results, runs = runs, full = full))
 }
 
 
