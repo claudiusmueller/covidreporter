@@ -146,7 +146,7 @@ shinyServer(function(input, output, session) {
              "Can't match previous runs with current run!")
       )
       matched_results <- match_run_results_with_previous(run_results(), 
-                                                         covid_db()$results)
+                                                         covid_db()$full)
       matched_results <- set_result_status(matched_results)
       if (!is.null(sample_accession())){
         matched_results <- add_failed_accession_qc_samples_to_results(matched_results,
@@ -184,6 +184,14 @@ shinyServer(function(input, output, session) {
       )
       report_data <- select_results_for_report(matched_results(), 
                                                subject_info())
+    })
+    
+    report_shiny <- reactive({
+      validate(
+        need(!is.null(report_data()) & !is.null(subject_info()),
+             "Can't create shiny-formatted tables!")
+      )
+      report_shiny <- format_report_for_shiny_table(report_data())
     })
     
     report_condensed <- reactive({
@@ -259,11 +267,11 @@ shinyServer(function(input, output, session) {
     )
     
     output$final_report <- renderTable({
-        report_data()$final
+        report_shiny()$final
     })
-    
+
     output$prelim_report <- renderTable({
-        report_data()$prelim
+        report_shiny()$prelim
     })
 
     output$download_condensed_report <- downloadHandler(
