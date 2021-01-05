@@ -210,6 +210,23 @@ shinyServer(function(input, output, session) {
       updated_covid_db <- updated_covid_db_raw()$covid_db
     })
     
+    run_results <- eventReactive(input$run_script, {
+      validate(
+        need(!is.null(run_data()) & !is.null(sample_manifest()),
+             "Can't create results - problem loading run data or sample manifest!")
+      )
+      run_results <- compute_run_results(run_data())
+      run_results <- add_failed_manifest_qc_samples_to_results(run_results,
+                                                               sample_manifest())
+    })
+    
+    results_qc <- eventReactive(input$run_script, {
+      validate(need(!is.null(matched_results()) & !is.null(subject_info()),
+               "Result QC halted. No results and subject info available.")
+      )
+      qc <- check_results(matched_results(), subject_info())
+    })
+    
     report_data <- reactive({
       validate(
         need(!is.null(matched_results()) & !is.null(subject_info()) &
@@ -287,6 +304,11 @@ shinyServer(function(input, output, session) {
     output$updated_covid_db_qc <- renderText(
       paste0("Updating Covid DB: ", updated_covid_db_qc()$qc, " (",
              updated_covid_db_qc()$qc_str, ")")
+    )
+    
+    output$results_qc <- renderText(
+      paste0("Checking Results: ", results_qc()$qc, " (",
+             results_qc()$qc_str, ")")
     )
     
     output$run_info <- renderText(

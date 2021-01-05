@@ -248,6 +248,24 @@ check_indiv_report_source <- function(indiv_report_source){
 }
 
 
+check_results <- function(matched_results, subject_info){
+  check_barcodes <- matched_results %>%
+    filter(barcode %in% subject_info$barcode) %>%
+    left_join(subject_info, by = "barcode") %>%
+    group_by(barcode) %>%
+    filter(n() > 1)
+  if (nrow(check_barcodes) > 0){
+    qc = "FAIL"
+    qc_str = paste("Barcodes assigned to more than one subject:", 
+                   paste(unique(check_barcodes$barcode), collapse = ", "))
+  } else {
+    qc = "PASS"
+    qc_str = "No errors found"
+  }
+  return(list(qc = qc, qc_str = qc_str))
+}
+
+
 create_vdh_template <- function(){
   vdh_template <- tibble(
     Sending_Facility_Name = c(NA),

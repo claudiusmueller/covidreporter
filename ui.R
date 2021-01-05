@@ -93,6 +93,7 @@ shinyUI(fluidPage(
             
             HTML("<br><br>"),
             textOutput("updated_covid_db_qc"),
+            textOutput("results_qc"),
             
             HTML("<br><br><br>"),
             
