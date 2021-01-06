@@ -200,8 +200,10 @@ add_run_to_covid_db <- function(covid_db, run_results, run){
   if (!(run$run_id[[1]] %in% runs$run_id)){
     runs <- runs %>%
       bind_rows(list(run_id = run$run_id[[1]], test_date = run$test_date[[1]]))
+    run_results_db_format <- run_results %>%
+      select(-test_date)
     results <- results %>%
-      bind_rows(run_results)
+      bind_rows(run_results_db_format)
     qc <- "PASS"
     qc_str <- "Test run data added!"
   } else {
