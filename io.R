@@ -269,6 +269,62 @@ check_results <- function(matched_results, subject_info){
 }
 
 
+check_controls <- function(run_data){
+  negative_str <- "Negative"
+  twist_str    <- "Twist positive"
+  idt_str      <- "IDT positive"
+  
+  results <- run_data %>%
+    mutate(result = case_when((rnasep >= cutpoint_rnasep | 
+                                 is.na(rnasep)) ~ indeterminate_str,
+                              (rnasep < cutpoint_rnasep & 
+                                 n1gene < cutpoint_n1gene) ~ positive_str,
+                              (rnasep < cutpoint_rnasep & 
+                                 (n1gene >= cutpoint_n1gene | 
+                                    is.na(n1gene))) ~ negative_str,
+                              TRUE ~ fail_str))
+  
+  if (!(negative_str %in% results$barcode)){
+    negative_qc <- "FAIL"
+    negative_qc_str <- "Could not find negative control!"
+  } else if (results$result[results$barcode == negative_str] == positive_str){
+    negative_qc <- "FAIL"
+    negative_qc_str <- "Negative control is positive!"
+  } else {
+    negative_qc <- "PASS"
+    negative_qc_str <- "Negative control is negative"
+  }
+  
+  if (!(twist_str %in% results$barcode)){
+    twist_qc <- "FAIL"
+    twist_qc_str <- "Could not find Twist positive control!"
+  } else if (results$result[results$barcode == twist_str] == negative_str |
+             results$result[results$barcode == twist_str] == indeterminate_str){
+    twist_qc <- "FAIL"
+    twist_qc_str <- "Twist positive control is negative!"
+  } else {
+    twist_qc <- "PASS"
+    twist_qc_str <- "Twist positive is positive"
+  }
+  
+  if ((!idt_str %in% results$barcode)){
+    idt_qc <- "FAIL"
+    idt_qc_str <- "Could not find IDT positive control!"
+  } else if (results$result[results$barcode == idt_str] == negative_str |
+             results$result[results$barcode == idt_str] == indeterminate_str){
+    idt_qc <- "FAIL"
+    idt_qc_str <- "IDT positive control is negative!"
+  } else {
+    idt_qc <- "PASS"
+    idt_qc_str <- "IDT positive control is positive"
+  }
+  
+  return(list(negative = list(qc = negative_qc, qc_str = negative_qc_str),
+              twist = list(qc = twist_qc, qc_str = twist_qc_str),
+              idt = list(qc = idt_qc, qc_str = idt_qc_str)))
+}
+
+
 create_vdh_template <- function(){
   vdh_template <- tibble(
     Sending_Facility_Name = c(NA),

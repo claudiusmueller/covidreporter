@@ -227,6 +227,13 @@ shinyServer(function(input, output, session) {
       qc <- check_results(matched_results(), subject_info())
     })
     
+    controls_qc <- eventReactive(input$run_script, {
+      validate(need(!is.null(run_data()),
+               "Controls QC halted. No test run data available.")
+      )
+      qc <- check_controls(run_data())
+    })
+    
     report_data <- reactive({
       validate(
         need(!is.null(matched_results()) & !is.null(subject_info()) &
@@ -309,6 +316,21 @@ shinyServer(function(input, output, session) {
     output$results_qc <- renderText(
       paste0("Checking Results: ", results_qc()$qc, " (",
              results_qc()$qc_str, ")")
+    )
+    
+    output$controls_negative_qc <- renderText(
+      paste0("Negative Control: ", controls_qc()$negative$qc, " (",
+                        controls_qc()$negative$qc_str, ")")
+    )
+    
+    output$controls_twist_qc <- renderText(
+      paste0("Twist Positive Control: ", controls_qc()$twist$qc, 
+             " (", controls_qc()$twist$qc_str, ")")
+    )
+    
+    output$controls_idt_qc <- renderText(
+      paste0("IDT Positive Control: ", controls_qc()$idt$qc, " (",
+             controls_qc()$idt$qc_str, ")")
     )
     
     output$run_info <- renderText(
