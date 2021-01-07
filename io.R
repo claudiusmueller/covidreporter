@@ -26,14 +26,17 @@ load_run <- function(filename){
     run_date <- run_head$date_backup[date_pos]
   }
   
-  run <- read_csv(filename, skip = well_pos - 1, 
-                  col_types = "iccccccccdccddddcdcii")
+  run_data <- read_csv(filename, skip = well_pos - 1)
+                  # col_types = "iccccccccdccddddcdcii")
   
-  run <- run %>%
+  run_data <- run_data %>%
     clean_names() %>%
     rename(barcode = sample) %>%
     select(barcode, target, cq) %>%
     drop_na(barcode) %>%
+    mutate(barcode = as.character(barcode),
+           target = as.character(target),
+           cq = as.double(cq)) %>%
     pivot_wider(names_from = target, values_from = cq) %>%
     clean_names()
   
@@ -44,12 +47,12 @@ load_run <- function(filename){
     return(df)
   }
   
-  run <- pmap_dfr(run, spread_repeated_barcodes)
+  run_data <- pmap_dfr(run_data, spread_repeated_barcodes)
   
-  run <- run %>%
+  run_data <- run_data %>%
     mutate(test_date = as_datetime(run_date),
            run_id = as.integer(run_id))
-  return(run)
+  return(run_data)
 }
 
 

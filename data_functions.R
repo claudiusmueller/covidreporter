@@ -19,7 +19,8 @@ match_run_results_with_previous <- function(run_results, previous_results){
     bind_rows(previous_results_sel) %>%
     arrange(run_id) %>%
     group_by(barcode) %>%
-    mutate(occurance = 1:n()) %>%
+    mutate(occurance = 1:n())
+  matched_results <- matched_results %>%
     pivot_wider(names_from = occurance,
                 values_from = c(result, run_id, test_date, rnasep, n1gene)) %>%
     mutate(result_2 = ifelse("result_2" %in% names(.), result_2, NA),
