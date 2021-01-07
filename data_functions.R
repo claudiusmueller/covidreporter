@@ -93,11 +93,14 @@ add_failed_manifest_qc_samples_to_results <- function(run_results,
   failed_samples <- sample_manifest %>%
     filter(str_detect(qc, "([Ff][Aa][Ii][Ll])") == TRUE) %>%
     select(barcode)
-  
+
   run_results <- run_results %>%
     bind_rows(failed_samples) %>%
     mutate(result = ifelse(barcode %in% failed_samples$barcode, bad_str, 
-                           result))
+                           result),
+           test_date = ifelse(barcode %in% failed_samples$barcode, test_date[1],
+                              test_date),
+           test_date = as_datetime(test_date))
   return(run_results)
 }
 

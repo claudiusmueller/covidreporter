@@ -25,7 +25,7 @@ cutpoint_n1gene   <<- 36
 positive_str      <<- "detected"     # N1 = Amp; P = Amp
 negative_str      <<- "not detected" # N1 = no Amp; P = Amp
 indeterminate_str <<- "indeterminate, pending repeat analysis" # P = no Amp
-bad_str           <<- "specimen not adequate, need to recollect"
+bad_str           <<- "specimen inadequate"
 pending_str       <<- "pending"
 not_received_str  <<- "sample not received"
 
