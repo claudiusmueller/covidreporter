@@ -193,11 +193,12 @@ shinyServer(function(input, output, session) {
       validate(
         need(!is.null(run_data()) &
                !is.null(covid_db()) &
-               !is.null(run_results()),
+               !is.null(run_results()) &
+               !is.null(subject_info()),
              "Can't update database!")
       )
       covid_db_data <- add_run_to_covid_db(covid_db(), run_results(), 
-                                           run_data())
+                                           run_data(), subject_info())
     })
     
     updated_covid_db_qc <- reactive({
@@ -210,21 +211,11 @@ shinyServer(function(input, output, session) {
       updated_covid_db <- updated_covid_db_raw()$covid_db
     })
     
-    run_results <- eventReactive(input$run_script, {
-      validate(
-        need(!is.null(run_data()) & !is.null(sample_manifest()),
-             "Can't create results - problem loading run data or sample manifest!")
-      )
-      run_results <- compute_run_results(run_data())
-      run_results <- add_failed_manifest_qc_samples_to_results(run_results,
-                                                               sample_manifest())
-    })
-    
     results_qc <- eventReactive(input$run_script, {
-      validate(need(!is.null(matched_results()) & !is.null(subject_info()),
-               "Result QC halted. No results and subject info available.")
+      validate(need(!is.null(matched_results()) & !is.null(updated_covid_db()),
+               "Result QC halted. No results and database available.")
       )
-      qc <- check_results(matched_results(), subject_info())
+      qc <- check_results(matched_results(), updated_covid_db()$subject_info)
     })
     
     controls_qc <- eventReactive(input$run_script, {
@@ -236,17 +227,17 @@ shinyServer(function(input, output, session) {
     
     report_data <- reactive({
       validate(
-        need(!is.null(matched_results()) & !is.null(subject_info()) &
+        need(!is.null(matched_results()) & !is.null(updated_covid_db()) &
                !is.null(updated_covid_db()),
-             "Can't create report - result matching error or subject info not found!")
+             "Can't create report - result matching error or database not found!")
       )
       report_data <- select_results_for_report(matched_results(), 
-                                               subject_info())
+                                               updated_covid_db()$subject_info)
     })
     
     report_shiny <- reactive({
       validate(
-        need(!is.null(report_data()) & !is.null(subject_info()),
+        need(!is.null(report_data()) & !is.null(updated_covid_db()),
              "Can't create shiny-formatted tables!")
       )
       report_shiny <- format_report_for_shiny_table(report_data())
@@ -254,31 +245,31 @@ shinyServer(function(input, output, session) {
     
     report_condensed <- reactive({
       validate(
-        need(!is.null(report_data()) & !is.null(subject_info()),
+        need(!is.null(report_data()) & !is.null(updated_covid_db()),
              "Can't create condensed report!")
       )
       report_with_subject_info <- add_subject_info_to_report(report_data()$final, 
-                                                             subject_info())
+                                                             updated_covid_db()$subject_info)
       report_condensed <- format_condensed_report(report_with_subject_info)
     })
     
     report_medicat <- reactive({
       validate(
-        need(!is.null(report_data()) & !is.null(subject_info()),
+        need(!is.null(report_data()) & !is.null(updated_covid_db()),
              "Can't create medicat report!")
       )
       report_with_subject_info <- add_subject_info_to_report(report_data()$final, 
-                                                             subject_info())
+                                                             updated_covid_db()$subject_info)
       report_medicat <- format_medicat_report(report_with_subject_info)
     })
     
     report_vdh <- reactive({
       validate(
-        need(!is.null(report_data()) & !is.null(subject_info()),
+        need(!is.null(report_data()) & !is.null(updated_covid_db()),
              "Can't create vdh report!")
       )
       report_with_subject_info <- add_subject_info_to_report(report_data()$final, 
-                                                             subject_info())
+                                                             updated_covid_db()$subject_info)
       vdh_template <- create_vdh_template()
       report_vdh <- format_vdh_report(vdh_template, report_with_subject_info)
     })
@@ -406,7 +397,8 @@ shinyServer(function(input, output, session) {
       },
       content = function(file) {
         datasets <- list("results" = updated_covid_db()$results,
-                         "runs" = updated_covid_db()$runs)
+                         "runs" = updated_covid_db()$runs,
+                         "subject_info" = updated_covid_db()$subject_info)
         write.xlsx(datasets, file)
       })
     

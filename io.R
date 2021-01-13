@@ -76,10 +76,11 @@ check_run_data <- function(run_data){
 
 
 load_sample_manifest <- function(filename){
-  sample_manifest <- read_excel(filename, col_types = c("text", "date", "text", 
-                                                        "text"))
+  sample_manifest <- read_excel(filename)
   sample_manifest <- sample_manifest %>%
-    clean_names()
+    clean_names() %>%
+    mutate(date = as_date(date),
+           barcode = as.character(barcode))
   return(sample_manifest)
 }
 
@@ -132,21 +133,17 @@ check_sample_accession <- function(sample_accession){
 
 
 load_subject_information <- function(filename){
-  sample_information <- read_excel(filename,
-                            col_types = c("text", "date", "date", "text",
-                                          "text", "text", "date", "text",
-                                          "text", "text", "text", "numeric",
-                                          "text", "text", "text", "text"))
-  sample_information <- sample_information %>%
+  subject_info <- read_excel(filename)
+  subject_info <- subject_info %>%
     clean_names() %>%
-    rename(collection_time = collection_time_hh_mm_am_pm,
-           collection_date = date) %>%
-    mutate(collection_time = hm(paste(hour(collection_time),
-                                      minute(collection_time),
-                                      sep = ":")),
-           collection_date = date(collection_date),
-           dob = date(dob))
-  return(sample_information)
+    rename(barcode = barcode_number,
+           dob = birth_date,
+           netid = net_id) %>%
+    mutate(collection_date = date(collection_date),
+           dob = date(dob),
+           barcode = as.character(barcode)) %>%
+    distinct(barcode, netid, last_name, first_name, .keep_all = TRUE)
+  return(subject_info)
 }
 
 
@@ -164,15 +161,20 @@ check_subject_info <- function(subject_info, run){
     run <- run %>%
       mutate(barcode_check = ifelse(barcode %in% subject_info$barcode,
                                     TRUE, FALSE))
-    if (!any(run$barcode_check)) {
-      qc = "FAIL"
-      qc_str = "No test run barcode matches subject information file!"
-    } else if (!all(run$barcode_check)) {
+    subject_info_dupl <- subject_info %>%
+      group_by(barcode) %>%
+      filter(n() > 1)
+    if (!all(run$barcode_check)) {
       qc = "PASS"
       qc_str = paste("Samples with no subject information:",
                      paste(run$barcode[run$barcode_check == FALSE], 
                            collapse = ", "))
-    } else {
+    } else if (nrow(subject_info_dupl) > 0){
+      qc = "FAIL"
+      qc_str = paste("Found duplicate barcodes with mismatching subject information:",
+                     paste(unique(subject_info_dupl$barcode), collapse = ", "))
+    }
+    else {
       qc = "PASS"
       qc_str = "No errors found"
     }
@@ -188,8 +190,12 @@ load_covid_db <- function(filename){
                                       "text"))
   runs <- read_excel(filename, sheet = "runs",
                      col_types = c("numeric", "date"))
+  subject_info <- read_excel(filename, sheet = "subject_info",
+                             col_types = c("text", "text", "text", "text",
+                                           "text", "date", "date"))
   full <- left_join(results, runs, by = "run_id")
-  return(list(results = results, runs = runs, full = full))
+  return(list(results = results, runs = runs, subject_info = subject_info, 
+              full = full))
 }
 
 
@@ -206,10 +212,10 @@ check_covid_db_integrity <- function(covid_db){
     if (nrow(runs) == 0){
       qc = "FAIL"
       qc_str = "Covid DB is empty!"
-    } else if (unique(runs$run_id) != runs$run_id){
+    } else if (!identical(sort(unique(runs$run_id)), sort(runs$run_id))){
       qc = "FAIL"
       qc_str = "Duplicate run ID's found in 'runs' table!"
-    } else if (unique(results$run_id) != runs$run_id){
+    } else if (!identical(sort(unique(results$run_id)), sort(runs$run_id))){
       qc = "FAIL"
       qc_str = "Run ID mismatch between 'results' and 'runs' table!"
     } else {
@@ -283,10 +289,16 @@ check_controls <- function(run_data){
                                  (n1gene >= cutpoint_n1gene | 
                                     is.na(n1gene))) ~ negative_str,
                               TRUE ~ fail_str))
+  counts <- run_data %>%
+    count(barcode)
+  results <- left_join(results, counts, by = "barcode")
   
   if (!(negative_str %in% results$barcode)){
     negative_qc <- "FAIL"
     negative_qc_str <- "Could not find negative control!"
+  } else if(results$n[results$barcode == negative_str] > 1){
+    negative_qc <- "FAIL"
+    negative_qc_str <- "More than one negative control found!"
   } else if (results$result[results$barcode == negative_str] == positive_str){
     negative_qc <- "FAIL"
     negative_qc_str <- "Negative control is positive!"
@@ -298,6 +310,9 @@ check_controls <- function(run_data){
   if (!(twist_str %in% results$barcode)){
     twist_qc <- "FAIL"
     twist_qc_str <- "Could not find Twist positive control!"
+  } else if(results$n[results$barcode == twist_str] > 1){
+    twist_qc <- "FAIL"
+    twist_qc_str <- "More than one Twist positive control found!"
   } else if (results$result[results$barcode == twist_str] == negative_str |
              results$result[results$barcode == twist_str] == indeterminate_str){
     twist_qc <- "FAIL"
@@ -310,6 +325,9 @@ check_controls <- function(run_data){
   if ((!idt_str %in% results$barcode)){
     idt_qc <- "FAIL"
     idt_qc_str <- "Could not find IDT positive control!"
+  } else if(results$n[results$barcode == idt_str] > 1){
+    idt_qc <- "FAIL"
+    idt_qc_str <- "More than one idt positive control found!"
   } else if (results$result[results$barcode == idt_str] == negative_str |
              results$result[results$barcode == idt_str] == indeterminate_str){
     idt_qc <- "FAIL"

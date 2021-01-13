@@ -157,9 +157,8 @@ format_report_for_shiny_table <- function(report_data){
 
 add_subject_info_to_report <- function(report_final, subject_info){
   report_with_subject_info <- report_final %>%
-    left_join(subject_info, by = "barcode") %>%
-    mutate(date_str = paste(collection_date, collection_time),
-           collection_date = ymd_hms(date_str))
+    left_join(subject_info, by = "barcode")
+    # mutate(collection_date = ymd_hms(collection_date))
   return(report_with_subject_info)
 }
 
@@ -172,13 +171,14 @@ format_condensed_report <- function(report_with_subject_info){
     mutate(test_date_final = pmap_dbl(list(test_date_1, test_date_2, 
                                            test_date_3), mymax),
            test_date_final = as_datetime(test_date_final),
-           test_date_final = as_date(test_date_final)) %>%
-    select(barcode, collection_date, g_number, net_id,
+           test_date_final = as_date(test_date_final),
+           dob = as_date(dob)) %>%
+    select(barcode, collection_date, g_number, netid,
            first_name, last_name, dob, test_date_final, result_final) %>%
     rename(Barcode = barcode, 
            `Collection Date` = collection_date,
            `G#` = g_number,
-           NetID = net_id,
+           NetID = netid,
            `Last Name` = last_name,
            `First Name` = first_name,
            DOB = dob,
@@ -196,25 +196,49 @@ format_medicat_report <- function(report_with_subject_info){
 }
 
 
-add_run_to_covid_db <- function(covid_db, run_results, run){
+add_run_to_covid_db <- function(covid_db, run_results, run_data, subject_info){
   runs <- covid_db$runs
   results <- covid_db$results
+  db_subject_info <- covid_db$subject_info
   qc <- "FAIL"
   qc_str <- "Database not updated!"
-  if (!(run$run_id[[1]] %in% runs$run_id)){
-    runs <- runs %>%
-      bind_rows(list(run_id = run$run_id[[1]], test_date = run$test_date[[1]]))
-    run_results_db_format <- run_results %>%
-      select(-test_date)
-    results <- results %>%
-      bind_rows(run_results_db_format)
-    qc <- "PASS"
-    qc_str <- "Test run data added!"
+
+  barcode_check <- subject_info %>%
+    filter(barcode %in% db_subject_info$barcode) %>%
+    select(barcode, netid) %>%
+    left_join(db_subject_info, by = "barcode") %>%
+    select(barcode, netid.x, netid.y) %>%
+    mutate(netid_check = ifelse(netid.x == netid.y, TRUE, FALSE))
+  
+  if (!any(barcode_check$netid_check == FALSE)){
+    db_subject_info <- db_subject_info %>%
+      bind_rows(subject_info) %>%
+      distinct(barcode, netid, g_number, .keep_all = TRUE) %>%
+      mutate(dob = as_date(dob))
+    
+    if (!(run_data$run_id[[1]] %in% runs$run_id)){
+      runs <- runs %>%
+        bind_rows(list(run_id = run_data$run_id[[1]], 
+                       test_date = run_data$test_date[[1]]))
+      run_results_db_format <- run_results %>%
+        select(-test_date)
+      results <- results %>%
+        bind_rows(run_results_db_format)
+      qc <- "PASS"
+      qc_str <- "Test run data added!"
+    } else {
+      qc <- "QUESTIONABLE"
+      qc_str <- "Test run data already in database - no new test data added!"
+    }
+    
   } else {
-    qc <- "QUESTIONABLE"
-    qc_str <- "Test run data already in database - nothing new added!"
+    qc <- "FAIL"
+    qc_str <- paste("Duplicate barcodes with different netid's in subject information and database: ",
+                    paste(barcode_check$barcode[barcode_check$netid_check == FALSE], collapse = ", "))
   }
-  covid_db <- list(results = results, runs = runs)
+ 
+  covid_db <- list(results = results, runs = runs, 
+                   subject_info = db_subject_info)
   qc <- list(qc = qc, qc_str = qc_str)
   return(list(covid_db = covid_db, qc = qc))
 }
