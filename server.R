@@ -103,8 +103,14 @@ shinyServer(function(input, output, session) {
         error = function(cond){
           return(NA)
         })
+        covid_db <- tryCatch({
+          covid_db()
+        },
+        error = function(cond){
+          return(NA)
+        })
       }
-      qc <- check_subject_info(subject_info, run_data)
+      qc <- check_subject_info(subject_info, run_data, covid_db)
     })
     
     subject_info <- reactive({

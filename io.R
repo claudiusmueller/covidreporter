@@ -142,12 +142,15 @@ load_subject_information <- function(filename){
     mutate(collection_date = date(collection_date),
            dob = date(dob),
            barcode = as.character(barcode)) %>%
+    select(barcode, g_number, first_name, last_name, dob, netid, barcode, 
+           collection_date) %>%
     distinct(barcode, netid, last_name, first_name, .keep_all = TRUE)
+  subject_info
   return(subject_info)
 }
 
 
-check_subject_info <- function(subject_info, run){
+check_subject_info <- function(subject_info, run, covid_db){
   if (is.null(subject_info)){
     qc = "FAIL"
     qc_str = "No subject information loaded!"
@@ -158,8 +161,10 @@ check_subject_info <- function(subject_info, run){
     qc = "FAIL"
     qc_str = "No run data loaded (needed for sample manifest qc)"
   } else {
+    known_barcodes <- c(unique(subject_info$barcode), 
+                        unique(covid_db$subject_info$barcode))
     run <- run %>%
-      mutate(barcode_check = ifelse(barcode %in% subject_info$barcode,
+      mutate(barcode_check = ifelse(barcode %in% known_barcodes,
                                     TRUE, FALSE))
     subject_info_dupl <- subject_info %>%
       group_by(barcode) %>%

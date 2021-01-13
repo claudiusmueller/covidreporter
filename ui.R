@@ -46,6 +46,19 @@ shinyUI(fluidPage(
             HTML("<br>"),
             
             fileInput(
+                "covid_db",
+                "Covid Database",
+                multiple = FALSE,
+                accept = c(".xlsx"),
+                width = NULL,
+                buttonLabel = "Browse...",
+                placeholder = "No file selected"
+            ),
+            
+            textOutput("covid_db_qc"),
+            HTML("<br>"),
+            
+            fileInput(
                 "subject_info",
                 "Subject Information",
                 multiple = FALSE,
@@ -58,18 +71,7 @@ shinyUI(fluidPage(
             textOutput("subject_info_qc"),
             HTML("<br>"),
             
-            fileInput(
-                "covid_db",
-                "Covid Database",
-                multiple = FALSE,
-                accept = c(".xlsx"),
-                width = NULL,
-                buttonLabel = "Browse...",
-                placeholder = "No file selected"
-            ),
-            
-            textOutput("covid_db_qc"),
-            HTML("<br>"),
+
             
             # fileInput(
             #     "sample_accession",
