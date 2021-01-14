@@ -76,7 +76,7 @@ check_run_data <- function(run_data){
 
 
 load_sample_manifest <- function(filename){
-  sample_manifest <- read_excel(filename)
+  sample_manifest <- read_excel(filename, sheet = "Sample_Manifest")
   sample_manifest <- sample_manifest %>%
     clean_names() %>%
     mutate(date = as_date(date),
