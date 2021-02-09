@@ -166,20 +166,32 @@ check_subject_info <- function(subject_info, run, covid_db){
     run <- run %>%
       mutate(barcode_check = ifelse(barcode %in% known_barcodes,
                                     TRUE, FALSE))
+    
     subject_info_dupl <- subject_info %>%
       group_by(barcode) %>%
       filter(n() > 1)
-    if (!all(run$barcode_check)) {
+    
+    subject_info_missing <- subject_info %>%
+      mutate(across(.cols = everything(), ~as.character(.))) %>%
+      rowwise() %>%
+      mutate(flag = any(is.na(c_across(cols = everything())))) %>%
+      ungroup() %>%
+      filter(flag == TRUE)
+    
+    if (nrow(subject_info_dupl) > 0){
+      qc = "FAIL"
+      qc_str = paste("Found duplicate barcodes with mismatching subject information:",
+                     paste(unique(subject_info_dupl$barcode), collapse = ", "))
+    } else if (nrow(subject_info_missing) > 0){
+      qc = "FAIL"
+      qc_str = paste("Found barcodes with missing subject information:",
+                     paste(subject_info_missing$barcode), collapse = ", ")
+    } else if (!all(run$barcode_check)) {
       qc = "PASS"
       qc_str = paste("Samples with no subject information:",
                      paste(run$barcode[run$barcode_check == FALSE], 
                            collapse = ", "))
-    } else if (nrow(subject_info_dupl) > 0){
-      qc = "FAIL"
-      qc_str = paste("Found duplicate barcodes with mismatching subject information:",
-                     paste(unique(subject_info_dupl$barcode), collapse = ", "))
-    }
-    else {
+    } else {
       qc = "PASS"
       qc_str = "No errors found"
     }
