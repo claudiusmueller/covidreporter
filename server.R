@@ -383,7 +383,7 @@ shinyServer(function(input, output, session) {
     
     output$download_vdh_report <- downloadHandler(
       filename = function () {
-        paste0("Report_VDH_",
+        paste0("ELR_Flatfiles~",
                format(Sys.time(), "%m%d%y_%k%M%S"),
                ".txt")
       },
