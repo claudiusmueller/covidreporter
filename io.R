@@ -1,4 +1,10 @@
 load_run <- function(filename){
+  
+  # TODO: remove this line once readr has been fixed. Readr ver2.0.0 currently 
+  # crashes R. This line forces readr to use the first edition of readr.
+  readr::local_edition(1)
+  # ========================================================
+  
   run_head <- read_csv(filename, col_names = c("line", "backup"),
                           col_types = cols(line = col_character(), 
                                            backup = col_character()))
