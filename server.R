@@ -17,6 +17,9 @@ library(rmarkdown)
 source("io.R")
 source("data_functions.R")
 
+# increase upload file size maximum to 30MB
+options(shiny.maxRequestSize = 30*1024^2)
+
 # cutpoints
 cutpoint_rnasep   <<- 30
 cutpoint_n1gene   <<- 36
