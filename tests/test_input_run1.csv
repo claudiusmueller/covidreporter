@@ -1,0 +1,29 @@
+File Name Run1_2020-11-30-17620_20201130_234636.eds,,,,,,,,,,,,,,,,,,,,
+Comment ,,,,,,,,,,,,,,,,,,,,
+Operator Tshaka C.,,,,,,,,,,,,,,,,,,,,
+Barcode ,,,,,,,,,,,,,,,,,,,,
+Instrument Type QuantStudio™ 7 Pro System,,,,,,,,,,,,,,,,,,,,
+Block Type 384-Well Block,,,,,,,,,,,,,,,,,,,,
+Instrument Name QS7Pro-2778720020167,,,,,,,,,,,,,,,,,,,,
+Instrument Serial Number 2778720020167,,,,,,,,,,,,,,,,,,,,
+Heated Cover Serial Number ,,,,,,,,,,,,,,,,,,,,
+Block Serial Number ,,,,,,,,,,,,,,,,,,,,
+Run Start Date/Time 2020-12-01 05:56:30 AM UTC,,,,,,,,,,,,,,,,,,,,
+Run End Date/Time 2020-12-01 07:00:40 AM UTC,,,,,,,,,,,,,,,,,,,,
+Run Duration 64 minutes 10 seconds,,,,,,,,,,,,,,,,,,,,
+Sample Volume 20,,,,,,,,,,,,,,,,,,,,
+Cover Temperature 105,,,,,,,,,,,,,,,,,,,,
+Passive Reference NONE,,,,,,,,,,,,,,,,,,,,
+PCR Stage/Step Number Stage 4 Step 2,,,,,,,,,,,,,,,,,,,,
+Quantification Cycle Method CT,,,,,,,,,,,,,,,,,,,,
+Pre-read Stage/Step Stage 1 Step 1,,,,,,,,,,,,,,,,,,,,
+Analysis Date/Time 2020-12-01 08:20:28 AM UTC,,,,,,,,,,,,,,,,,,,,
+Software Name and Version Design & Analysis Software v2.5.0,,,,,,,,,,,,,,,,,,,,
+"Plugin Name and Version Primary Analysis v1.5.0, Relative Quantification v1.4.0",,,,,,,,,,,,,,,,,,,,
+Exported By guest,,,,,,,,,,,,,,,,,,,,
+Exported On 2020-12-01 08:26:30 AM UTC,,,,,,,,,,,,,,,,,,,,
+Well,Well Position,Omit,Sample,Target,Task,Reporter,Quencher,Amp Status,Amp Score,Curve Quality,Result Quality Issues,Cq,Cq Confidence,Cq Mean,Cq SD,Auto Threshold,Threshold,Auto Baseline,Baseline Start,Baseline End
+49,C1,0,1,n1gene,UNKNOWN,FAM,None,No Amp,0,,,Undetermined,0,,,1,2300.55953254814,1,3,42
+49,C1,0,1,rnasep,UNKNOWN,VIC,None,Amp,2.18310492190447,,,22.5567536439669,0.916099566345556,22.5567536439669,,1,5153.12649433841,1,3,17
+67,C19,0,2,n1gene,UNKNOWN,FAM,None,Amp,1.99757627422096,,,28.6198547483193,0.711560200053379,28.6198547483193,,1,2300.55953254814,1,3,26
+67,C19,0,2,rnasep,UNKNOWN,VIC,None,Amp,2.18516024358155,,,21.3818744223274,0.967275403981315,21.3818744223274,,1,5153.12649433841,1,3,13

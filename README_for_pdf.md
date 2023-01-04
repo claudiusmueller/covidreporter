@@ -11,7 +11,8 @@ human RNase P gene.
 
 This test has been used by the George Mason University Athletics Department since the fall of 2020 for athlete COVID-19 surveillance. In addition, this test is used as backup for GMU student/staff surveillance testing.
 
-![Samples Analyzed to date](https://img.shields.io/badge/Samples%20Analyzed-54293-brightgreen?style=for-the-badge&logo=appveyor)
+<!--![Samples Analyzed to date](https://img.shields.io/badge/Samples%20Analyzed-54293-brightgreen?style=for-the-badge&logo=appveyor)-->
+**Samples Analyzed to date: 54293**
 
 Due to a lack of HIPAA compliant infrastructure availability at the time of development, and to accomodate the experience of end users with excel, this app requires that data files be shared manually between users instead of being hosted as a database online.
 
@@ -36,8 +37,11 @@ Due to a lack of HIPAA compliant infrastructure availability at the time of deve
 
 ## Technologies
 
-[![R](https://img.shields.io/badge/R-4.05-blue)](https://cran.r-project.org/)
-[![Shiny](https://img.shields.io/badge/Shiny-1.6.0-blue)](https://shiny.rstudio.com/)
+<!--[![R](https://img.shields.io/badge/R-4.05-blue)](https://cran.r-project.org/)
+[![Shiny](https://img.shields.io/badge/Shiny-1.6.0-blue)](https://shiny.rstudio.com/)-->
+
+* R 4.05
+* Shiny 1.6.0
 
 ## Installation
 
